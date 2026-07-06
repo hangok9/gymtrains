@@ -177,7 +177,7 @@ input:focus{outline:2px solid #a3e635;outline-offset:2px;}
           <p id="feedbackText" class="text-base font-bold"></p>
           <p id="feedbackDetail" class="text-xs text-zinc-500 mb-3 hidden"></p>
           <button id="btnShowAnswer" class="w-full h-12 bg-amber-500 hover:bg-amber-400 text-black font-bold text-base rounded-xl transition-all active:scale-95 hidden">Ver respuesta correcta</button>
-          <button id="btnNext" class="w-full h-12 bg-zinc-800 hover:bg-zinc-700 text-lime-400 font-bold text-base rounded-xl border border-zinc-700 transition-all active:scale-95">Siguiente</button>
+          <button id="btnNext" class="w-full h-12 bg-zinc-800 hover:bg-zinc-700 text-lime-400 font-bold text-base rounded-xl border border-zinc-700 transition-all active:scale-95 hidden">Siguiente</button>
         </div>
       </div>
     </div>
@@ -446,12 +446,14 @@ input:focus{outline:2px solid #a3e635;outline-offset:2px;}
       feedbackDetail.classList.remove("hidden");
       feedbackDetail.textContent = (trackingMetric === "weight" ? "targetWeight" : "totalVolume") + ": " + rawAnswer;
       btnShowAnswer.classList.add("hidden");
+      btnNext.classList.remove("hidden");
     } else {
       feedbackEmoji.textContent = "\u274C";
       feedbackText.className = "text-base font-bold text-red-400";
       feedbackText.textContent = "Repetición fallida";
       feedbackDetail.classList.add("hidden");
       btnShowAnswer.classList.remove("hidden");
+      btnNext.classList.add("hidden");
     }
   }
 
@@ -459,6 +461,7 @@ input:focus{outline:2px solid #a3e635;outline-offset:2px;}
     feedbackDetail.classList.remove("hidden");
     feedbackDetail.textContent = "Valor correcto: " + lastAnswer;
     btnShowAnswer.classList.add("hidden");
+    btnNext.classList.remove("hidden");
   }
 
   function showEndScreen(){

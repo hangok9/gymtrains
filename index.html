@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Gym Trains — Hypertrophy Tracker</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+*{font-family:'Inter',sans-serif;box-sizing:border-box;}
+body{background:#0a0a0a;color:#e0e0e0;-webkit-tap-highlight-color:transparent;user-select:none;height:100dvh;display:flex;flex-direction:column;overflow:hidden;}
+input[type="text"],input[type="password"],input[type="tel"]{font-size:16px!important;}
+input:focus{outline:2px solid #a3e635;outline-offset:2px;}
+.neon-border{border:1px solid #a3e635;box-shadow:0 0 8px rgba(163,227,53,.3);}
+.glow{text-shadow:0 0 12px rgba(163,227,53,.5);}
+.muscle-bg{background:radial-gradient(ellipse at top,#1a1a1a 0%,#0a0a0a 70%);}
+.bounce-in{animation:bounceIn .3s cubic-bezier(.68,-.55,.27,1.55);}
+.shake{animation:shake .4s ease-in-out;}
+@keyframes bounceIn{0%{transform:scale(.8);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.pulse-glow{animation:pulseGlow 1.5s infinite;}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 4px rgba(163,227,53,.2)}50%{box-shadow:0 0 16px rgba(163,227,53,.6)}}
+.nav-active{background:#a3e635;color:#0a0a0a!important;border-color:#a3e635!important;}
+.card-hover{transition:all .15s;}
+.card-hover:active{transform:scale(.96);}
+.tab-btn{transition:all .15s;border-bottom:2px solid transparent;}
+.tab-btn:active{transform:scale(.92);}
+.progress-fill{background:linear-gradient(90deg,#a3e635,#84cc16,#65a30d);border-radius:999px;transition:width .5s ease;}
+.stat-glow{box-shadow:inset 0 0 12px rgba(163,227,53,.05);}
+</style>
+</head>
+<body>
+
+<div id="header" class="flex-shrink-0 flex items-center justify-between px-4 h-14 bg-zinc-900/90 border-b border-zinc-800">
+  <div class="flex items-center gap-2">
+    <span class="text-lg">🔥</span>
+    <span class="font-black text-lime-400 tracking-tight text-lg glow">GYM TRAINS</span>
+  </div>
+  <div class="flex items-center gap-3">
+    <button class="fakeBtn w-9 h-9 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-lg card-hover">🔔</button>
+    <button class="fakeBtn w-9 h-9 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-lg card-hover">⚙️</button>
+    <div class="w-9 h-9 rounded-full bg-lime-500/20 border-2 border-lime-500/40 flex items-center justify-center text-lime-400 text-sm font-bold">GT</div>
+  </div>
+</div>
+
+<div id="content" class="flex-1 min-h-0 overflow-hidden muscle-bg">
+  <div id="app" class="h-full w-full max-w-md mx-auto relative">
+
+    <div id="screen1" class="absolute inset-0 flex flex-col p-3 gap-2 overflow-y-auto">
+      <div class="grid grid-cols-3 gap-2 flex-shrink-0">
+        <div class="bg-zinc-900/80 rounded-xl p-3 border border-zinc-800 stat-glow">
+          <p class="text-zinc-600 text-[10px] uppercase tracking-widest">Kcal</p>
+          <p class="text-lime-400 font-black text-lg">2,184</p>
+          <div class="w-full h-1 bg-zinc-800 rounded-full mt-1"><div class="progress-fill h-1 w-[73%]"></div></div>
+        </div>
+        <div class="bg-zinc-900/80 rounded-xl p-3 border border-zinc-800 stat-glow">
+          <p class="text-zinc-600 text-[10px] uppercase tracking-widest">Proteína</p>
+          <p class="text-lime-400 font-black text-lg">142g</p>
+          <div class="w-full h-1 bg-zinc-800 rounded-full mt-1"><div class="progress-fill h-1 w-[59%]"></div></div>
+        </div>
+        <div class="bg-zinc-900/80 rounded-xl p-3 border border-zinc-800 stat-glow">
+          <p class="text-zinc-600 text-[10px] uppercase tracking-widest">Pasos</p>
+          <p class="text-lime-400 font-black text-lg">7.2k</p>
+          <div class="w-full h-1 bg-zinc-800 rounded-full mt-1"><div class="progress-fill h-1 w-[48%]"></div></div>
+        </div>
+      </div>
+
+      <div class="flex gap-2 flex-shrink-0">
+        <button class="fakeBtn flex-1 h-12 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-300 text-sm font-semibold card-hover">🏋️ Ejercicios</button>
+        <button class="fakeBtn flex-1 h-12 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-300 text-sm font-semibold card-hover">🥗 Nutrición</button>
+        <button class="fakeBtn flex-1 h-12 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-300 text-sm font-semibold card-hover">📊 Progreso</button>
+      </div>
+
+      <div class="flex-1 flex flex-col items-center justify-center gap-3 min-h-0">
+        <div class="text-center">
+          <h1 class="text-3xl font-black text-lime-400 glow tracking-tight">GYM TRAINS</h1>
+          <p class="text-zinc-600 text-xs mt-1 tracking-widest uppercase">Hypertrophy Tracking System v2.4</p>
+        </div>
+        <div class="w-full bg-zinc-900/80 rounded-2xl p-5 neon-border">
+          <p class="text-zinc-500 text-[10px] uppercase tracking-widest mb-3 text-center font-semibold">Supplementation Intake — Authenticate</p>
+          <div class="flex gap-2 mb-3">
+            <button class="fakeBtn flex-1 h-9 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-500 text-xs font-semibold card-hover">Pre-Workout</button>
+            <button class="fakeBtn flex-1 h-9 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-500 text-xs font-semibold card-hover">BCAA</button>
+            <button class="fakeBtn flex-1 h-9 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-500 text-xs font-semibold card-hover">Creatine</button>
+          </div>
+          <input id="preWorkout" type="password" placeholder="Pre-workout formula" class="w-full bg-zinc-800 text-lime-300 border border-zinc-700 rounded-xl px-4 py-3 h-12 text-base placeholder-zinc-600 mb-3">
+          <button id="btnLoadRoutine" class="w-full h-12 bg-lime-500 hover:bg-lime-400 text-black font-bold text-base rounded-xl transition-all duration-150 active:scale-95 pulse-glow">Cargar Rutina</button>
+          <p id="loginError" class="text-red-400 text-xs text-center mt-2 hidden"></p>
+        </div>
+      </div>
+    </div>
+
+    <div id="screen2" class="hidden absolute inset-0 flex flex-col p-3 gap-2 overflow-y-auto">
+      <div class="flex gap-2 flex-shrink-0">
+        <button class="fakeBtn flex-1 h-12 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-400 text-sm font-semibold card-hover">📋 Rutinas</button>
+        <button class="fakeBtn flex-1 h-12 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-400 text-sm font-semibold card-hover">🏆 Logros</button>
+        <button class="fakeBtn flex-1 h-12 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-400 text-sm font-semibold card-hover">👥 Social</button>
+      </div>
+
+      <div class="bg-zinc-900/80 rounded-xl p-3 border border-zinc-800 flex-shrink-0">
+        <p class="text-zinc-600 text-[10px] uppercase tracking-widest mb-2 font-semibold">Selección de grupos musculares</p>
+        <div class="grid grid-cols-4 gap-2">
+          <button class="fakeBtn h-10 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-400 text-xs font-semibold card-hover">🏋️ Pecho</button>
+          <button class="fakeBtn h-10 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-400 text-xs font-semibold card-hover">🔙 Espalda</button>
+          <button class="fakeBtn h-10 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-400 text-xs font-semibold card-hover">🦵 Piernas</button>
+          <button class="fakeBtn h-10 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-400 text-xs font-semibold card-hover">💪 Bíceps</button>
+          <button class="fakeBtn h-10 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-400 text-xs font-semibold card-hover">🏏 Hombros</button>
+          <button class="fakeBtn h-10 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-400 text-xs font-semibold card-hover">🔱 Tríceps</button>
+          <button class="fakeBtn h-10 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-400 text-xs font-semibold card-hover">📐 Abdominales</button>
+          <button class="fakeBtn h-10 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-400 text-xs font-semibold card-hover">🦅 Trapecio</button>
+        </div>
+      </div>
+
+      <div class="bg-zinc-900/80 rounded-xl p-3 border border-zinc-800 flex-shrink-0">
+        <div class="flex justify-between items-center">
+          <div>
+            <p class="text-zinc-600 text-[10px] uppercase tracking-widest font-semibold">Plan activo</p>
+            <p class="text-lime-400 font-bold text-sm">Push / Pull / Legs</p>
+          </div>
+          <span class="text-zinc-600 text-[10px]">Semana 3/12</span>
+        </div>
+        <div class="w-full h-1.5 bg-zinc-800 rounded-full mt-2"><div class="progress-fill h-1.5 w-[25%]"></div></div>
+      </div>
+
+      <div class="flex-1 flex flex-col items-center justify-center min-h-0">
+        <div class="w-full bg-zinc-900/80 rounded-2xl p-5 neon-border">
+          <p class="text-lime-400 font-bold text-center text-base bounce-in">Carga completada.</p>
+          <p id="dbCount" class="text-zinc-500 text-xs text-center mb-4">Ejercicios disponibles en la base de datos</p>
+          <p class="text-zinc-600 text-[10px] uppercase tracking-widest mb-3 text-center font-semibold">Selecciona sets por entrenamiento</p>
+          <div class="flex gap-3 justify-center mb-4">
+            <button data-count="5" class="setBtn w-16 h-14 rounded-xl bg-zinc-800 border-2 border-zinc-700 text-zinc-400 font-bold text-base transition-all card-hover">5</button>
+            <button data-count="10" class="setBtn w-16 h-14 rounded-xl bg-zinc-800 border-2 border-zinc-700 text-zinc-400 font-bold text-base transition-all card-hover">10</button>
+            <button data-count="all" class="setBtn w-16 h-14 rounded-xl bg-zinc-800 border-2 border-zinc-700 text-zinc-400 font-bold text-base transition-all card-hover">All</button>
+          </div>
+          <button id="btnStartWorkout" class="w-full h-12 bg-lime-500 hover:bg-lime-400 text-black font-bold text-base rounded-xl transition-all duration-150 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed" disabled>Iniciar Entrenamiento</button>
+          <div class="flex gap-2 mt-3">
+            <button class="fakeBtn flex-1 h-10 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-500 text-xs font-semibold card-hover">Programar</button>
+            <button class="fakeBtn flex-1 h-10 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-500 text-xs font-semibold card-hover">Compartir</button>
+            <button class="fakeBtn flex-1 h-10 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-500 text-xs font-semibold card-hover">Exportar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="screen3" class="hidden absolute inset-0 flex flex-col p-3 gap-2 overflow-y-auto">
+      <div class="grid grid-cols-2 gap-2 flex-shrink-0">
+        <div class="bg-zinc-900/80 rounded-xl p-2.5 border border-zinc-800">
+          <p class="text-zinc-600 text-[9px] uppercase tracking-widest">Rendimiento</p>
+          <p class="text-lime-400 font-bold text-sm"><span id="hypertrophyGains">0</span> <span class="text-zinc-600 text-xs">gains</span></p>
+        </div>
+        <div class="bg-zinc-900/80 rounded-xl p-2.5 border border-zinc-800">
+          <p class="text-zinc-600 text-[9px] uppercase tracking-widest">Serie</p>
+          <p class="text-lime-400 font-bold text-sm"><span id="seriesProgress">0</span><span class="text-zinc-600">/<span id="seriesTotal">0</span></span></p>
+        </div>
+      </div>
+
+      <div class="flex gap-1 flex-shrink-0">
+        <button class="fakeBtn flex-1 h-9 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-600 text-[10px] font-semibold card-hover">⏱️ Temporizador</button>
+        <button class="fakeBtn flex-1 h-9 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-600 text-[10px] font-semibold card-hover">📝 Notas</button>
+        <button class="fakeBtn flex-1 h-9 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-600 text-[10px] font-semibold card-hover">📸 Grabar</button>
+        <button class="fakeBtn flex-1 h-9 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-600 text-[10px] font-semibold card-hover">🔊 Música</button>
+      </div>
+
+      <div id="questionArea" class="flex-1 flex flex-col items-center justify-center text-center gap-3 min-h-0">
+        <div class="w-full bg-zinc-900/80 rounded-2xl p-5 neon-border">
+          <div class="w-full h-1.5 bg-zinc-800 rounded-full mb-4"><div id="progressBar" class="progress-fill h-1.5 w-0"></div></div>
+          <p id="questionText" class="text-base text-zinc-300 leading-relaxed mb-3"></p>
+          <input id="answerInput" type="text" class="w-full bg-zinc-800 text-lime-300 border border-zinc-700 rounded-xl px-4 py-3 h-12 text-base text-center font-bold tracking-widest uppercase placeholder-zinc-600 mb-3">
+          <button id="btnSubmitAnswer" class="w-full h-12 bg-lime-500 hover:bg-lime-400 text-black font-bold text-base rounded-xl transition-all duration-150 active:scale-95">Registrar Repetición</button>
+        </div>
+      </div>
+
+      <div id="feedbackArea" class="hidden flex-1 flex-col items-center justify-center text-center gap-3 min-h-0">
+        <div class="w-full bg-zinc-900/80 rounded-2xl p-5 neon-border">
+          <p id="feedbackEmoji" class="text-4xl mb-1"></p>
+          <p id="feedbackText" class="text-base font-bold"></p>
+          <p id="feedbackDetail" class="text-xs text-zinc-500 mb-3 hidden"></p>
+          <button id="btnShowAnswer" class="w-full h-12 bg-amber-500 hover:bg-amber-400 text-black font-bold text-base rounded-xl transition-all active:scale-95 hidden">Ver respuesta correcta</button>
+          <button id="btnNext" class="w-full h-12 bg-zinc-800 hover:bg-zinc-700 text-lime-400 font-bold text-base rounded-xl border border-zinc-700 transition-all active:scale-95">Siguiente</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="screenEnd" class="hidden absolute inset-0 flex flex-col p-3 gap-2 overflow-y-auto">
+      <div class="flex-1 flex flex-col items-center justify-center gap-2">
+        <div class="w-full bg-zinc-900/80 rounded-2xl p-5 neon-border text-center">
+          <p class="text-4xl mb-2" id="endEmoji">🏋️</p>
+          <h2 class="text-xl font-black text-lime-400 glow mb-1">Rendimiento Muscular</h2>
+          <p class="text-zinc-600 text-xs mb-4">Entrenamiento finalizado</p>
+          <div class="text-5xl font-black text-white mb-1"><span id="finalScore">0</span><span class="text-zinc-600 text-2xl">/<span id="finalTotal">0</span></span></div>
+          <p id="finalRating" class="text-zinc-400 text-sm mb-4"></p>
+
+          <div class="grid grid-cols-3 gap-2 mb-4">
+            <div class="bg-zinc-800/60 rounded-lg p-2">
+              <p class="text-zinc-600 text-[9px] uppercase">Aciertos</p>
+              <p class="text-lime-400 font-bold text-sm"><span id="endAccuracy">0</span>%</p>
+            </div>
+            <div class="bg-zinc-800/60 rounded-lg p-2">
+              <p class="text-zinc-600 text-[9px] uppercase">Racha</p>
+              <p class="text-lime-400 font-bold text-sm" id="endStreak">—</p>
+            </div>
+            <div class="bg-zinc-800/60 rounded-lg p-2">
+              <p class="text-zinc-600 text-[9px] uppercase">Nivel</p>
+              <p class="text-lime-400 font-bold text-sm" id="endLevel">—</p>
+            </div>
+          </div>
+
+          <div class="flex gap-2 mb-4">
+            <span class="fakeBtn px-3 py-1.5 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-500 text-[10px] font-semibold card-hover">🏅 Fuerza</span>
+            <span class="fakeBtn px-3 py-1.5 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-500 text-[10px] font-semibold card-hover">🔥 Resistencia</span>
+            <span class="fakeBtn px-3 py-1.5 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-500 text-[10px] font-semibold card-hover">💪 Hipertrofia</span>
+          </div>
+
+          <button id="btnRestart" class="w-full h-12 bg-lime-500 hover:bg-lime-400 text-black font-bold text-base rounded-xl transition-all duration-150 active:scale-95">Nuevo Entrenamiento</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="bottomNav" class="flex-shrink-0 flex items-center justify-around px-2 h-16 bg-zinc-900/95 border-t border-zinc-800">
+  <button class="navItem flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all" data-screen="dashboard">
+    <span class="text-xl">🏠</span>
+    <span class="text-[9px] font-semibold text-zinc-600">Dashboard</span>
+  </button>
+  <button class="navItem flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all nav-active" data-screen="training">
+    <span class="text-xl">💪</span>
+    <span class="text-[9px] font-semibold text-zinc-600">Training</span>
+  </button>
+  <button class="navItem flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all" data-screen="nutrition">
+    <span class="text-xl">🥗</span>
+    <span class="text-[9px] font-semibold text-zinc-600">Nutrition</span>
+  </button>
+  <button class="navItem flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all" data-screen="progress">
+    <span class="text-xl">📊</span>
+    <span class="text-[9px] font-semibold text-zinc-600">Progress</span>
+  </button>
+  <button class="navItem flex flex-col items-center gap-0.5 py-1 px-3 rounded-xl transition-all" data-screen="profile">
+    <span class="text-xl">👤</span>
+    <span class="text-[9px] font-semibold text-zinc-600">Profile</span>
+  </button>
+</div>
+
+<script>
+(function(){
+  var rawRoutineData = "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";
+
+  var gymWords = {
+    A:"AGUJETAS",B:"BICEPS",C:"CROSSFIT",D:"DOMINADAS",E:"EXTENSION",
+    F:"FLEXION",G:"GLUTEOS",H:"HALTERES",I:"INTENSIDAD",J:"JALON",
+    K:"KETTLEBELL",L:"LEVANTAMIENTO",M:"MANCUERNA",N:"NUTRICION",
+    O:"OBLICUOS",P:"PROTEINA",Q:"QUEMAGRASAS",R:"REPETICION",
+    S:"SENTADILLA",T:"TRICEPS",U:"UPPERCUT",V:"VOLUMEN",
+    W:"WHEY",X:"XOVER",Y:"YOGURTGRIEGO",Z:"ZANCADAS"
+  };
+
+  var digitToLetter = {0:"M",1:"P",2:"T",3:"S",4:"C",5:"B",6:"L",7:"R",8:"D",9:"N"};
+  var letterToDigit = {M:"0",P:"1",T:"2",S:"3",C:"4",B:"5",L:"6",R:"7",D:"8",N:"9"};
+
+  var charToLetter = {A:"X",B:"Z",C:"V",D:"Q",E:"F",F:"G",G:"Y",H:"W",I:"U",J:"P",K:"O",L:"J",M:"K",N:"A",O:"I",P:"E",Q:"H",R:"N",S:"T",T:"S",U:"R",V:"C",W:"M",X:"B",Y:"L",Z:"D"};
+  var letterToChar = {X:"A",Z:"B",V:"C",Q:"D",F:"E",G:"F",Y:"G",W:"H",U:"I",P:"J",O:"K",J:"L",K:"M",A:"N",I:"O",E:"P",H:"Q",N:"R",T:"S",S:"T",R:"U",C:"V",M:"W",B:"X",L:"Y",D:"Z"};
+
+  var activeExercises = [];
+  var currentWorkout = [];
+  var setCount = 0;
+  var hypertrophyGains = 0;
+  var currentIndex = 0;
+  var trackingMetric = "";
+  var currentPerson = null;
+  var currentGymPhrase = "";
+  var currentEffectiveReps = [];
+  var currentSetSequence = [];
+  var expectedTypes = [];
+
+  var screens = {
+    s1: document.getElementById("screen1"),
+    s2: document.getElementById("screen2"),
+    s3: document.getElementById("screen3"),
+    end: document.getElementById("screenEnd")
+  };
+
+  var preWorkout = document.getElementById("preWorkout");
+  var btnLoadRoutine = document.getElementById("btnLoadRoutine");
+  var loginError = document.getElementById("loginError");
+  var dbCount = document.getElementById("dbCount");
+  var setBtns = document.querySelectorAll(".setBtn");
+  var btnStartWorkout = document.getElementById("btnStartWorkout");
+  var hypertrophyGainsEl = document.getElementById("hypertrophyGains");
+  var seriesProgress = document.getElementById("seriesProgress");
+  var seriesTotal = document.getElementById("seriesTotal");
+  var questionText = document.getElementById("questionText");
+  var answerInput = document.getElementById("answerInput");
+  var btnSubmitAnswer = document.getElementById("btnSubmitAnswer");
+  var questionArea = document.getElementById("questionArea");
+  var feedbackArea = document.getElementById("feedbackArea");
+  var feedbackEmoji = document.getElementById("feedbackEmoji");
+  var feedbackText = document.getElementById("feedbackText");
+  var feedbackDetail = document.getElementById("feedbackDetail");
+  var btnShowAnswer = document.getElementById("btnShowAnswer");
+  var btnNext = document.getElementById("btnNext");
+  var endEmoji = document.getElementById("endEmoji");
+  var finalScore = document.getElementById("finalScore");
+  var finalTotal = document.getElementById("finalTotal");
+  var finalRating = document.getElementById("finalRating");
+  var finalAccuracy = document.getElementById("endAccuracy");
+  var finalStreak = document.getElementById("endStreak");
+  var finalLevel = document.getElementById("endLevel");
+  var btnRestart = document.getElementById("btnRestart");
+  var progressBar = document.getElementById("progressBar");
+  var navItems = document.querySelectorAll(".navItem");
+  var fakeBtns = document.querySelectorAll(".fakeBtn");
+
+  function showScreen(id){
+    Object.keys(screens).forEach(function(k){screens[k].classList.add("hidden");});
+    screens[id].classList.remove("hidden");
+    navItems.forEach(function(n){n.classList.remove("nav-active");});
+    var trainingNav = document.querySelector('.navItem[data-screen="training"]');
+    if(trainingNav) trainingNav.classList.add("nav-active");
+  }
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for(var i=a.length-1;i>0;i--){
+      var j=Math.floor(Math.random()*(i+1));
+      var tmp=a[i];a[i]=a[j];a[j]=tmp;
+    }
+    return a;
+  }
+
+  function obfuscate(dataStr){
+    var phrase = "";
+    var reps = [];
+    var seq = [];
+    var types = [];
+
+    for(var pos=0;pos<dataStr.length;pos++){
+      var ch = dataStr[pos];
+      var subLetter;
+      var isDigit = ch>="0" && ch<="9";
+      types.push(isDigit ? "digit" : "letter");
+      if(isDigit){
+        subLetter = digitToLetter[ch];
+      } else {
+        subLetter = charToLetter[ch.toUpperCase()] || "X";
+      }
+      var word = gymWords[subLetter] || "REP";
+      phrase += word;
+      reps.push(true);
+      seq.push(pos);
+      for(var f=1;f<word.length;f++){
+        reps.push(false);
+        seq.push(-1);
+      }
+    }
+    return {phrase:phrase, effectiveReps:reps, setSequence:seq, types:types};
+  }
+
+  function deobfuscate(ob){
+    var chars = [];
+    for(var i=0;i<ob.phrase.length;i++){
+      if(ob.effectiveReps[i]){
+        var idx = ob.setSequence[i];
+        var letter = ob.phrase[i];
+        if(ob.types[idx]==="digit"){
+          chars[idx] = letterToDigit[letter] || "0";
+        } else {
+          chars[idx] = letterToChar[letter] || "A";
+        }
+      }
+    }
+    return chars.join("");
+  }
+
+  function validateRepetition(){
+    var userAns = answerInput.value.trim();
+    var expected = deobfuscate({
+      phrase:currentGymPhrase,
+      effectiveReps:currentEffectiveReps,
+      setSequence:currentSetSequence,
+      types:expectedTypes
+    });
+    return userAns === expected;
+  }
+
+  function loadNextExercise(){
+    if(currentIndex >= currentWorkout.length){
+      showEndScreen();
+      return;
+    }
+    currentPerson = currentWorkout[currentIndex];
+    if(currentPerson.targetWeightObf !== null && currentPerson.totalVolumeObf !== null){
+      trackingMetric = Math.random() < 0.5 ? "weight" : "volume";
+    } else if(currentPerson.targetWeightObf === null){
+      trackingMetric = "volume";
+    } else {
+      trackingMetric = "weight";
+    }
+    var obfData = trackingMetric === "weight" ? currentPerson.targetWeightObf : currentPerson.totalVolumeObf;
+    currentGymPhrase = obfData.phrase;
+    currentEffectiveReps = obfData.effectiveReps;
+    currentSetSequence = obfData.setSequence;
+    expectedTypes = obfData.types;
+
+    var metricLabel = trackingMetric === "weight" ? "weight" : "volume";
+    questionText.textContent = "Próximo ejercicio: " + currentPerson.exerciseName + ". Introduce el " + metricLabel + " estimado";
+
+    if(trackingMetric === "volume"){
+      answerInput.type = "tel";
+      answerInput.inputMode = "numeric";
+      answerInput.autocomplete = "off";
+    } else {
+      answerInput.type = "text";
+      answerInput.inputMode = "text";
+      answerInput.autocomplete = "off";
+    }
+    answerInput.value = "";
+    questionArea.classList.remove("hidden");
+    feedbackArea.classList.add("hidden");
+    btnSubmitAnswer.disabled = false;
+    btnSubmitAnswer.textContent = "Registrar Repetición";
+    seriesProgress.textContent = currentIndex + 1;
+    seriesTotal.textContent = currentWorkout.length;
+    hypertrophyGainsEl.textContent = hypertrophyGains;
+    var pct = currentWorkout.length > 0 ? ((currentIndex) / currentWorkout.length * 100) : 0;
+    if(progressBar) progressBar.style.width = pct + "%";
+    answerInput.focus();
+  }
+
+  var lastAnswer = "";
+
+  function handleAnswer(){
+    if(btnSubmitAnswer.disabled) return;
+    var correct = validateRepetition();
+    var rawAnswer = deobfuscate({phrase:currentGymPhrase,effectiveReps:currentEffectiveReps,setSequence:currentSetSequence,types:expectedTypes});
+    lastAnswer = rawAnswer;
+    questionArea.classList.add("hidden");
+    feedbackArea.classList.remove("hidden");
+    if(correct){
+      hypertrophyGains++;
+      hypertrophyGainsEl.textContent = hypertrophyGains;
+      feedbackEmoji.textContent = "\u2705";
+      feedbackText.className = "text-base font-bold text-lime-400";
+      feedbackText.textContent = "Repetición correcta!";
+      feedbackDetail.classList.remove("hidden");
+      feedbackDetail.textContent = (trackingMetric === "weight" ? "targetWeight" : "totalVolume") + ": " + rawAnswer;
+      btnShowAnswer.classList.add("hidden");
+    } else {
+      feedbackEmoji.textContent = "\u274C";
+      feedbackText.className = "text-base font-bold text-red-400";
+      feedbackText.textContent = "Repetición fallida";
+      feedbackDetail.classList.add("hidden");
+      btnShowAnswer.classList.remove("hidden");
+    }
+  }
+
+  function revealAnswer(){
+    feedbackDetail.classList.remove("hidden");
+    feedbackDetail.textContent = "Valor correcto: " + lastAnswer;
+    btnShowAnswer.classList.add("hidden");
+  }
+
+  function showEndScreen(){
+    showScreen("end");
+    finalScore.textContent = hypertrophyGains;
+    finalTotal.textContent = currentWorkout.length;
+    var pct = currentWorkout.length > 0 ? hypertrophyGains / currentWorkout.length : 0;
+    var emoji, rating;
+    if(pct >= 0.9){emoji = "\uD83C\uDFC6"; rating = "Nivel Mr. Olympia";}
+    else if(pct >= 0.7){emoji = "\uD83D\uDCAA"; rating = "Físico avanzado";}
+    else if(pct >= 0.5){emoji = "\uD83C\uDFC3"; rating = "Intermedio, sigue entrenando";}
+    else {emoji = "\uD83C\uDFCB"; rating = "Principiante, necesitas más serie";}
+    endEmoji.textContent = emoji;
+    finalRating.textContent = rating;
+    if(finalAccuracy) finalAccuracy.textContent = currentWorkout.length > 0 ? Math.round(pct * 100) : 0;
+    if(finalStreak) finalStreak.textContent = hypertrophyGains > 0 ? hypertrophyGains + " seguidos" : "—";
+    if(finalLevel){
+      if(pct >= 0.9) finalLevel.textContent = "Élite";
+      else if(pct >= 0.7) finalLevel.textContent = "Avanzado";
+      else if(pct >= 0.5) finalLevel.textContent = "Intermedio";
+      else finalLevel.textContent = "Principiante";
+    }
+  }
+
+  function nextExercise(){
+    currentIndex++;
+    loadNextExercise();
+  }
+
+  function startWorkout(){
+    var selected = setCount;
+    var shuffled = shuffle(activeExercises);
+    currentWorkout = shuffled.slice(0, selected);
+    currentIndex = 0;
+    hypertrophyGains = 0;
+    showScreen("s3");
+    loadNextExercise();
+  }
+
+  function transformAnswer(){
+    if(trackingMetric !== "volume"){
+      answerInput.value = answerInput.value.toUpperCase();
+    }
+  }
+
+  function selectSetCount(e){
+    setBtns.forEach(function(b){
+      b.className = "setBtn w-16 h-14 rounded-xl bg-zinc-800 border-2 border-zinc-700 text-zinc-400 font-bold text-base transition-all card-hover";
+    });
+    e.target.className = "setBtn w-16 h-14 rounded-xl bg-lime-500 border-2 border-lime-500 text-black font-bold text-base transition-all";
+    var val = e.target.getAttribute("data-count");
+    setCount = val === "all" ? activeExercises.length : parseInt(val);
+    btnStartWorkout.disabled = false;
+  }
+
+  function decryptAndLoad(){
+    var pw = preWorkout.value.trim();
+    if(!pw){
+      loginError.textContent = "Introduce el pre-workout";
+      loginError.classList.remove("hidden");
+      return;
+    }
+    try {
+      var decryptedRaw = CryptoJS.AES.decrypt(rawRoutineData, pw).toString(CryptoJS.enc.Utf8);
+      if(!decryptedRaw || decryptedRaw.length < 5) throw new Error("Invalid");
+      var parsed = JSON.parse(decryptedRaw);
+      activeExercises = parsed.map(function(p){
+        return {
+          id: p.id,
+          exerciseName: p.exerciseName,
+          targetWeightObf: p.targetWeight !== null ? obfuscate(p.targetWeight) : null,
+          totalVolumeObf: p.totalVolume !== null ? obfuscate(p.totalVolume) : null
+        };
+      });
+      if(activeExercises.length === 0){
+        loginError.textContent = "No hay ejercicios en la rutina";
+        loginError.classList.remove("hidden");
+        return;
+      }
+      loginError.classList.add("hidden");
+      dbCount.textContent = "Ejercicios disponibles en la base de datos: " + activeExercises.length;
+      showScreen("s2");
+    } catch(e){
+      loginError.textContent = "Pre-workout inválido. Intenta de nuevo.";
+      loginError.classList.remove("hidden");
+    }
+  }
+
+  function restartApp(){
+    hypertrophyGains = 0;
+    currentIndex = 0;
+    currentWorkout = [];
+    setCount = 0;
+    showScreen("s1");
+    preWorkout.value = "";
+    loginError.classList.add("hidden");
+    btnStartWorkout.disabled = true;
+    setBtns.forEach(function(b){
+      b.className = "setBtn w-16 h-14 rounded-xl bg-zinc-800 border-2 border-zinc-700 text-zinc-400 font-bold text-base transition-all card-hover";
+    });
+  }
+
+  btnLoadRoutine.addEventListener("click", decryptAndLoad);
+  preWorkout.addEventListener("keydown", function(e){if(e.key==="Enter") decryptAndLoad();});
+  setBtns.forEach(function(b){b.addEventListener("click", selectSetCount);});
+  btnStartWorkout.addEventListener("click", startWorkout);
+  btnSubmitAnswer.addEventListener("click", handleAnswer);
+  answerInput.addEventListener("keydown", function(e){
+    if(e.key==="Enter" && !questionArea.classList.contains("hidden")) handleAnswer();
+  });
+  answerInput.addEventListener("input", transformAnswer);
+  btnShowAnswer.addEventListener("click", revealAnswer);
+  btnNext.addEventListener("click", nextExercise);
+  btnRestart.addEventListener("click", restartApp);
+
+  fakeBtns.forEach(function(b){
+    b.addEventListener("click", function(){
+      this.classList.add("scale-90");
+      var self = this;
+      setTimeout(function(){self.classList.remove("scale-90");}, 100);
+    });
+  });
+
+  navItems.forEach(function(n){
+    n.addEventListener("click", function(){
+      var target = this.getAttribute("data-screen");
+      if(target === "training") return;
+      navItems.forEach(function(x){x.classList.remove("nav-active");});
+      this.classList.add("nav-active");
+    });
+  });
+})();
+</script>
+</body>
+</html>
